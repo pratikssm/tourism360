@@ -1,0 +1,23 @@
+export const PREVIEW_DATA = {
+  destinations: [
+    { id: 'goa', slug: 'goa', name: 'Goa', state: 'Goa', country: 'India', image_url: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1000&q=80&auto=format&fit=crop', tags: ['Beaches', 'Culture'] },
+    { id: 'jaipur', slug: 'jaipur', name: 'Jaipur', state: 'Rajasthan', country: 'India', image_url: 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?w=1000&q=80&auto=format&fit=crop', tags: ['Heritage', 'Architecture'] },
+    { id: 'kerala', slug: 'kerala', name: 'Kerala', state: 'Kerala', country: 'India', image_url: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=1000&q=80&auto=format&fit=crop', tags: ['Backwaters', 'Nature'] },
+    { id: 'varanasi', slug: 'varanasi', name: 'Varanasi', state: 'Uttar Pradesh', country: 'India', image_url: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=1000&q=80&auto=format&fit=crop', tags: ['Heritage', 'Spiritual'] },
+  ],
+  listings: [
+    { id: 'goa-stay', category: 'hotel', title: 'Beachside stays in Goa', city: 'Goa', destination_slug: 'goa', description: 'Relaxed stays close to the coast and local cafes.', image_url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1000&q=80&auto=format&fit=crop', price_indicative: 'Explore stays', rating_indicative: '4.8' },
+    { id: 'jaipur-stay', category: 'hotel', title: 'Heritage stay in Jaipur', city: 'Jaipur', destination_slug: 'jaipur', description: 'A restored haveli close to the old city.', image_url: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=1000&q=80&auto=format&fit=crop', price_indicative: 'Explore stays', rating_indicative: '4.7' },
+    { id: 'varanasi-food', category: 'restaurant', title: 'Taste of old Varanasi', city: 'Varanasi', destination_slug: 'varanasi', description: 'Discover local flavours near the riverfront.', image_url: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=1000&q=80&auto=format&fit=crop', price_indicative: 'Explore food', rating_indicative: '4.6' },
+    { id: 'jaipur-sight', category: 'attraction', title: 'Amber Fort', city: 'Jaipur', destination_slug: 'jaipur', description: 'Explore the hilltop fort and its historic courtyards.', image_url: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?w=1000&q=80&auto=format&fit=crop', price_indicative: 'Check visitor details' },
+    { id: 'goa-activity', category: 'activity', title: 'Coastal boat trip', city: 'Goa', destination_slug: 'goa', description: 'See the coastline from the water.', image_url: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1000&q=80&auto=format&fit=crop', price_indicative: 'Explore activities' },
+    { id: 'kerala-experience', category: 'experience', title: 'Kerala backwater cruise', city: 'Alappuzha', destination_slug: 'kerala', description: 'A slow journey through palm-lined canals.', image_url: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=1000&q=80&auto=format&fit=crop', price_indicative: 'Explore experiences', rating_indicative: '4.9' },
+    { id: 'jaipur-shopping', category: 'shopping', title: 'Jaipur craft markets', city: 'Jaipur', destination_slug: 'jaipur', description: 'Browse textiles, jewellery and local crafts.', image_url: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1000&q=80&auto=format&fit=crop', price_indicative: 'Browse shops' },
+    { id: 'city-cinema', category: 'cinema', title: 'City cinema listings', city: 'New Delhi', destination_slug: 'delhi', description: 'Browse a sample cinema catalogue.', image_url: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1000&q=80&auto=format&fit=crop', price_indicative: 'Confirm showtimes' },
+  ],
+  events: [
+    { id: 'goa-festival', category: 'festival', title: 'Goa cultural season', date_text: 'Seasonal', venue: 'Panaji', city: 'Goa', image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000&q=80&auto=format&fit=crop', description: 'A preview of local cultural events.' },
+    { id: 'jaipur-festival', category: 'arts', title: 'Jaipur arts & culture', date_text: 'Seasonal', venue: 'Pink City', city: 'Jaipur', image_url: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1000&q=80&auto=format&fit=crop', description: 'A preview of arts and cultural events.' },
+    { id: 'kerala-festival', category: 'culture', title: 'Kerala local celebrations', date_text: 'Seasonal', venue: 'Alappuzha', city: 'Kerala', image_url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000&q=80&auto=format&fit=crop', description: 'A preview of seasonal celebrations.' },
+  ],
+};
