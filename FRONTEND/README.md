@@ -4,9 +4,9 @@
 
 Install packages with `npm ci`, then run `npm run dev` for the UI. The local preview catalogue is used for read-only listing pages when Vercel API functions are not running.
 
-To run the database API functions locally, keep the public browser variables in the ignored `.env.local`, add `NEXT_PUBLIC_SUPABASE_URL` and the newly rotated `SUPABASE_SERVICE_ROLE_KEY` there, then run `npm run dev:vercel`. `.env.example` lists the required variable names. Vercel CLI may ask you to sign in and link this folder to the deployed project. Do not put the service-role key in `VITE_*` variables or commit it.
+The browser client uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from the ignored `.env.local` file. The publishable key is safe for browser use. The API functions use `SUPABASE_URL` and the privileged, server-only `SUPABASE_SECRET_KEY`. Configure both in the Vercel Development environment, run `npx vercel pull --environment=development --yes`, then run `npm run dev:vercel`. Never use the publishable key for the API, prefix the secret key with `VITE_`, or commit it. `.env.example` lists the required variable names. Vercel CLI may ask you to sign in and link this folder to the deployed project.
 
-For deployment, configure `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY` in the Vercel project environment settings. The service-role key must be server-only. The old key was exposed in config and should be rotated before reuse.
+For deployment, configure `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL`, and `SUPABASE_SECRET_KEY` in the Vercel project environment settings. The secret key must be server-only. Rotate any secret key that has been exposed.
 
 Supabase Auth must have email/password sign-in enabled. If email confirmation is enabled, registration sends a confirmation email before login is allowed. Add the deployed site's `/login` URL to Supabase Auth's allowed redirect URLs.
 

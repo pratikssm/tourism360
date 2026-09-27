@@ -46,51 +46,247 @@ export function Navbar() {
   const { push } = useToast();
   const [open, setOpen] = useState(false);
   const nav = useNavigate();
+
+  /* ---------- Logged-in user display ---------- */
+  const displayName = user?.name?.trim() || 'Traveller';
+
+  const roleLabels: Record<string, string> = {
+    TOURIST: 'Tourist',
+    BUSINESS_OWNER: 'Business',
+    TOUR_GUIDE: 'Tour Guide',
+    TRAVEL_AGENT: 'Travel Agent',
+    ADMIN: 'Admin',
+    SUPER_ADMIN: 'Super Admin',
+  };
+
+  const displayRole =
+    roleLabels[user?.role || 'TOURIST'] || 'Tourist';
+
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'T';
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setOpen(false);
+      nav('/');
+    } catch {
+      push('Could not sign out', 'err');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center gap-2">
+
+        {/* Logo */}
         <Logo />
+
+        {/* Desktop Navigation */}
         <nav className="hidden 2xl:flex items-center gap-1 ml-4 text-sm font-medium">
+
+          {/* Home */}
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `px-3 py-2 rounded-lg transition ${
+                isActive
+                  ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-300'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
+              }`
+            }
+          >
+            Home
+          </NavLink>
+
+          {/* Existing navigation */}
           {NAV.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
-              className={({ isActive }) => `px-3 py-2 rounded-lg transition ${isActive ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+              className={({ isActive }) =>
+                `px-3 py-2 rounded-lg transition ${
+                  isActive
+                    ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-300'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
+                }`
+              }
             >
               {t(n.k)}
             </NavLink>
           ))}
         </nav>
+
         <div className="flex-1" />
+
+        {/* Language */}
         <button
           onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
           className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
           title="Language / भाषा"
         >
-          <Globe className="w-4 h-4" />{lang === 'en' ? 'हिंदी' : 'EN'}
+          <Globe className="w-4 h-4" />
+          {lang === 'en' ? 'हिंदी' : 'EN'}
         </button>
-        <button onClick={toggle} className="p-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10" title="Theme">
-          {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+
+        {/* Theme */}
+        <button
+          onClick={toggle}
+          className="p-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
+          title="Theme"
+        >
+          {dark ? (
+            <Sun className="w-4 h-4" />
+          ) : (
+            <Moon className="w-4 h-4" />
+          )}
         </button>
+
+        {/* ---------- Desktop Account ---------- */}
         {user ? (
           <div className="hidden 2xl:flex items-center gap-2">
-            <button onClick={() => nav('/dashboard')} className="px-3 py-2 rounded-lg text-sm font-semibold bg-teal-600 text-white hover:bg-teal-700">{t('dashboard')}</button>
-            <button onClick={async () => { try { await logout(); nav('/'); } catch { push('Could not sign out', 'err'); } }} className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10">{t('logout')}</button>
+
+            {/* User profile / dashboard button */}
+            <button
+              onClick={() => nav('/dashboard')}
+              className="group flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-teal-300 dark:hover:border-teal-500/40 hover:bg-teal-50 dark:hover:bg-teal-500/10 transition"
+              title="Open Dashboard"
+            >
+              {/* Avatar */}
+              <span className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-indigo-600 text-white grid place-items-center text-xs font-extrabold shadow-sm">
+                {initials}
+              </span>
+
+              {/* Name + Role */}
+              <span className="text-left leading-tight max-w-[130px]">
+                <span className="block text-sm font-bold text-slate-800 dark:text-white truncate">
+                  {displayName}
+                </span>
+
+                <span className="block text-[10px] font-semibold text-teal-600 dark:text-teal-300 truncate">
+                  {displayRole}
+                </span>
+              </span>
+
+              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-teal-600 transition" />
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
+            >
+              {t('logout')}
+            </button>
           </div>
         ) : (
           <div className="hidden 2xl:flex items-center gap-2">
-            <button onClick={() => nav('/login')} className="px-3 py-2 rounded-lg text-sm font-semibold text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-500/10">{t('login')}</button>
-            <button onClick={() => nav('/register')} className="px-3 py-2 rounded-lg text-sm font-semibold bg-teal-600 text-white hover:bg-teal-700">{t('register')}</button>
+            <button
+              onClick={() => nav('/login')}
+              className="px-3 py-2 rounded-lg text-sm font-semibold text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-500/10"
+            >
+              {t('login')}
+            </button>
+
+            <button
+              onClick={() => nav('/register')}
+              className="px-3 py-2 rounded-lg text-sm font-semibold bg-teal-600 text-white hover:bg-teal-700"
+            >
+              {t('register')}
+            </button>
           </div>
         )}
-        <button onClick={() => setOpen(!open)} className="2xl:hidden p-2.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10" aria-label="Menu">
-          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+
+        {/* Mobile menu button */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="2xl:hidden p-2.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
+          aria-label="Menu"
+        >
+          {open ? (
+            <X className="w-5 h-5" />
+          ) : (
+            <Menu className="w-5 h-5" />
+          )}
         </button>
       </div>
+
+      {/* ---------- Mobile Menu ---------- */}
       {open && (
-        <div className="2xl:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 px-4 py-3 grid grid-cols-2 gap-1 max-h-[70vh] overflow-y-auto">
+        <div className="2xl:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 px-4 py-3 grid grid-cols-2 gap-1 max-h-[75vh] overflow-y-auto">
+
+          {/* Mobile logged-in user card */}
+          {user && (
+            <button
+              onClick={() => {
+                nav('/dashboard');
+                setOpen(false);
+              }}
+              className="col-span-2 mb-2 p-3 rounded-2xl bg-gradient-to-r from-teal-50 to-indigo-50 dark:from-teal-500/10 dark:to-indigo-500/10 border border-teal-100 dark:border-white/10 flex items-center gap-3 text-left"
+            >
+              {/* Avatar */}
+              <span className="w-11 h-11 rounded-full bg-gradient-to-br from-teal-500 to-indigo-600 text-white grid place-items-center text-sm font-extrabold shrink-0">
+                {initials}
+              </span>
+
+              {/* Name + role */}
+              <span className="min-w-0 flex-1">
+                <span className="block font-extrabold text-sm truncate">
+                  {displayName}
+                </span>
+
+                <span className="block text-xs font-semibold text-teal-600 dark:text-teal-300 mt-0.5">
+                  {displayRole}
+                </span>
+
+                <span className="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Open Dashboard
+                </span>
+              </span>
+
+              <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+            </button>
+          )}
+
+          {/* Home */}
+          <NavLink
+            to="/"
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              `px-3 py-2.5 rounded-lg text-sm font-medium ${
+                isActive
+                  ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-300'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+              }`
+            }
+          >
+            Home
+          </NavLink>
+
+          {/* Main navigation */}
+          {NAV.map((n) => (
+            <NavLink
+              key={n.to}
+              to={n.to}
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `px-3 py-2.5 rounded-lg text-sm font-medium ${
+                  isActive
+                    ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-300'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                }`
+              }
+            >
+              {t(n.k)}
+            </NavLink>
+          ))}
+
+          {/* Additional pages */}
           {[
-            { to: '/', k: 'explore' }, ...NAV,
             { to: '/restaurants', k: 'restaurants' },
             { to: '/attractions', k: 'attractions' },
             { to: '/activities', k: 'activities' },
@@ -102,20 +298,64 @@ export function Navbar() {
             { to: '/about', k: 'about' },
             { to: '/contact', k: 'contact' },
           ].map((n) => (
-            <NavLink key={n.to + n.k} to={n.to} onClick={() => setOpen(false)} className="px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5">
+            <NavLink
+              key={n.to + n.k}
+              to={n.to}
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `px-3 py-2.5 rounded-lg text-sm font-medium ${
+                  isActive
+                    ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-300'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                }`
+              }
+            >
               {t(n.k)}
             </NavLink>
           ))}
+
+          {/* Mobile account actions */}
           <div className="col-span-2 flex gap-2 pt-2">
             {user ? (
               <>
-                <button onClick={() => { nav('/dashboard'); setOpen(false); }} className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-teal-600 text-white">{t('dashboard')}</button>
-                <button onClick={async () => { try { await logout(); setOpen(false); nav('/'); } catch { push('Could not sign out', 'err'); } }} className="flex-1 py-2.5 rounded-lg text-sm font-semibold border border-slate-300 dark:border-white/20">{t('logout')}</button>
+                <button
+                  onClick={() => {
+                    nav('/dashboard');
+                    setOpen(false);
+                  }}
+                  className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-teal-600 text-white hover:bg-teal-700"
+                >
+                  Dashboard
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 py-2.5 rounded-lg text-sm font-semibold border border-slate-300 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10"
+                >
+                  {t('logout')}
+                </button>
               </>
             ) : (
               <>
-                <button onClick={() => { nav('/login'); setOpen(false); }} className="flex-1 py-2.5 rounded-lg text-sm font-semibold border border-slate-300 dark:border-white/20">{t('login')}</button>
-                <button onClick={() => { nav('/register'); setOpen(false); }} className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-teal-600 text-white">{t('register')}</button>
+                <button
+                  onClick={() => {
+                    nav('/login');
+                    setOpen(false);
+                  }}
+                  className="flex-1 py-2.5 rounded-lg text-sm font-semibold border border-slate-300 dark:border-white/20"
+                >
+                  {t('login')}
+                </button>
+
+                <button
+                  onClick={() => {
+                    nav('/register');
+                    setOpen(false);
+                  }}
+                  className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-teal-600 text-white"
+                >
+                  {t('register')}
+                </button>
               </>
             )}
           </div>
@@ -124,7 +364,6 @@ export function Navbar() {
     </header>
   );
 }
-
 /* ---------- Footer ---------- */
 export function Footer() {
   const { t } = useI18n();
@@ -194,7 +433,7 @@ export function SearchBar({ value, onChange, onSubmit }: { value: string; onChan
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit?.(); }} className="flex items-center gap-1 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xl shadow-slate-900/5">
       <Search className="w-5 h-5 ml-2 text-slate-400 shrink-0" />
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={t('search')} className="flex-1 min-w-0 bg-transparent outline-none px-2 py-2.5 text-sm sm:text-base placeholder:text-slate-400" />
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={t('search')} className="flex-1 min-w-0 bg-transparent text-slate-900 dark:text-white outline-none px-2 py-2.5 text-sm sm:text-base placeholder:text-slate-400" />
       <button type="button" onClick={voice} className={`p-2.5 rounded-xl transition ${listening ? 'bg-rose-100 text-rose-600 animate-pulse' : 'hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500'}`} title="Voice search">
         <Mic className="w-4 h-4" />
       </button>

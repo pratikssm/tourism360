@@ -126,7 +126,7 @@ function toAppUser(session: Session | null): User | null {
 const AuthCtx = createContext<{
   user: User | null;
   ready: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, role: Role) => Promise<void>;
   register: (email: string, password: string, name: string, role: SignupRole) => Promise<boolean>;
   logout: () => Promise<void>;
 }>({ user: null, ready: false, login: async () => {}, register: async () => false, logout: async () => {} });
@@ -161,10 +161,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return supabase;
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, expectedRole: Role) => {
     const client = requireSupabase();
-    const { error } = await client.auth.signInWithPassword({ email, password });
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    if (toAppUser(data.session)?.role !== expectedRole) {
+      await client.auth.signOut();
+      throw new Error(`This account does not have the ${expectedRole.replace('_', ' ')} role.`);
+    }
   };
 
   const register = async (email: string, password: string, name: string, role: SignupRole) => {

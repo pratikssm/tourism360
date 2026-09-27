@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SIGNUP_ROLES, useAuth, useToast, type SignupRole } from '../lib/app-context';
+import { ROLES, SIGNUP_ROLES, useAuth, useToast, type Role, type SignupRole } from '../lib/app-context';
 import { Logo } from '../components/ui';
 import { isSupabaseConfigured } from '../lib/supabase';
 
@@ -30,13 +30,14 @@ export function LoginPage() {
   const { push } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<Role>('TOURIST');
   const [busy, setBusy] = useState(false);
 
   const go = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
-      await login(email.trim(), password);
+      await login(email.trim(), password, role);
       push('Login successful');
       nav('/dashboard');
     } catch (error) {
@@ -52,6 +53,7 @@ export function LoginPage() {
         {!isSupabaseConfigured && <p className="text-sm text-rose-600">Authentication is unavailable until Supabase environment variables are configured.</p>}
         <label className="block text-sm font-bold">Email<input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-transparent text-sm" /></label>
         <label className="block text-sm font-bold">Password<input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-transparent text-sm" /></label>
+        <label className="block text-sm font-bold">Role<select value={role} onChange={(e) => setRole(e.target.value as Role)} className="mt-1 w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-transparent text-sm [&>option]:text-slate-900">{ROLES.map((option) => <option key={option} value={option}>{option.replace('_', ' ')}</option>)}</select></label>
         <button disabled={busy || !isSupabaseConfigured} className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold text-sm">{busy ? 'Signing in…' : 'Login'}</button>
         <p className="text-xs text-center text-slate-500">New here? <Link to="/register" className="font-bold text-teal-600">Create account</Link></p>
       </form>
