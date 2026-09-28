@@ -1473,7 +1473,7 @@ export function PlannerPage() {
     try {
       setSaved(false);
 
-      await api.createTrip({
+      await api.saveTrip({
         title: tripTitle,
         destination:
           input.destination,
