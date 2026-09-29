@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ROLES,
@@ -106,7 +106,6 @@ function Shell({
     </div>
   );
 }
-
 function Divider() {
   return (
     <div className="flex items-center gap-3 my-4">
@@ -118,7 +117,6 @@ function Divider() {
     </div>
   );
 }
-
 function GoogleIcon() {
   return (
     <svg
@@ -145,15 +143,25 @@ function GoogleIcon() {
     </svg>
   );
 }
-
 export function LoginPage() {
   const nav = useNavigate();
   const { login } = useAuth();
   const { push } = useToast();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return localStorage.getItem('tourism360_remember_email') || '';
+  });
+
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('TOURIST');
+  const [rememberMe, setRememberMe] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return Boolean(
+      localStorage.getItem('tourism360_remember_email')
+    );
+  });
+
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
 
@@ -170,6 +178,21 @@ export function LoginPage() {
     if (!password) {
       push('Please enter your password.', 'err');
       return;
+    }
+
+    /*
+     * Remember only the email address.
+     * Never store the user's password in localStorage.
+     */
+    if (rememberMe) {
+      localStorage.setItem(
+        'tourism360_remember_email',
+        email.trim()
+      );
+    } else {
+      localStorage.removeItem(
+        'tourism360_remember_email'
+      );
     }
 
     setBusy(true);
@@ -295,6 +318,29 @@ export function LoginPage() {
           </select>
         </label>
 
+        {/* Remember Me + Forgot Password */}
+        <div className="flex items-center justify-between pt-1">
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) =>
+                setRememberMe(e.target.checked)
+              }
+              className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+            />
+
+            <span>Remember me</span>
+          </label>
+
+          <Link
+            to="/forgot-password"
+            className="text-sm font-semibold text-teal-600 hover:text-teal-700 transition"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
         <button
           type="submit"
           disabled={
@@ -341,7 +387,6 @@ export function LoginPage() {
     </Shell>
   );
 }
-
 export function RegisterPage() {
   const nav = useNavigate();
   const { register } = useAuth();
@@ -739,3 +784,367 @@ const isInvalidName =
     </Shell>
   );
 }
+
+/* =========================================================
+   FORGOT PASSWORD
+========================================================= */
+
+export function ForgotPasswordPage() {
+  const nav = useNavigate();
+  const { push } = useToast();
+
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const sendResetLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const emailError = validateEmail(email);
+    if (emailError) {
+      push(emailError, 'err');
+      return;
+    }
+
+    if (!supabase) {
+      push('Password reset is unavailable until Supabase is configured.', 'err');
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        {
+          redirectTo: `${window.location.origin}/reset-password`,
+        }
+      );
+
+      if (error) throw error;
+
+      setSent(true);
+      push('Password reset link sent. Please check your email.');
+    } catch (error) {
+      push(
+        error instanceof Error
+          ? error.message
+          : 'Unable to send password reset email.',
+        'err'
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Shell
+      title="Forgot password?"
+      sub="Enter your registered email and we will send you a password reset link."
+    >
+      {sent ? (
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900 p-4">
+            <p className="text-sm font-semibold text-teal-700 dark:text-teal-300">
+              Reset link sent successfully.
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+              Check your email inbox and open the password reset link.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSent(false);
+              setEmail('');
+            }}
+            className="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 font-bold text-sm"
+          >
+            Send Again
+          </button>
+
+          <button
+            type="button"
+            onClick={() => nav('/login')}
+            className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm"
+          >
+            Back to Login
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={sendResetLink} className="space-y-4">
+          <label className="block text-sm font-bold">
+            Email
+            <input
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="mt-1 w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-transparent text-sm outline-none focus:border-teal-500"
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={busy || !isSupabaseConfigured}
+            className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold text-sm transition"
+          >
+            {busy ? 'Sending reset link…' : 'Send Reset Link'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => nav('/login')}
+            className="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 font-bold text-sm"
+          >
+            Back to Login
+          </button>
+        </form>
+      )}
+    </Shell>
+  );
+}
+
+/* =========================================================
+   RESET PASSWORD
+========================================================= */
+
+export function ResetPasswordPage() {
+  const nav = useNavigate();
+  const { push } = useToast();
+
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!supabase) {
+      setChecking(false);
+      setReady(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    const client = supabase;
+
+    const checkRecoverySession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await client.auth.getSession();
+
+        if (active) {
+          setReady(Boolean(session));
+          setChecking(false);
+        }
+      } catch {
+        if (active) {
+          setReady(false);
+          setChecking(false);
+        }
+      }
+    };
+
+    const {
+      data: { subscription },
+    } = client.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setReady(true);
+        setChecking(false);
+        return;
+      }
+
+      if (event === 'SIGNED_IN' && session) {
+        setReady(true);
+        setChecking(false);
+      }
+    });
+
+    checkRecoverySession();
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const passwordError =
+    password.length > 0 ? validatePassword(password) : '';
+
+  const passwordsMatch =
+    confirmPassword.length === 0 || password === confirmPassword;
+
+  const updatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!supabase) {
+      push('Password reset is unavailable until Supabase is configured.', 'err');
+      return;
+    }
+
+    const error = validatePassword(password);
+    if (error) {
+      push(error, 'err');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      push('Password and confirm password do not match.', 'err');
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password,
+      });
+
+      if (updateError) throw updateError;
+
+      push('Password updated successfully. Please login with your new password.');
+      await supabase.auth.signOut();
+      nav('/login', { replace: true });
+    } catch (error) {
+      push(
+        error instanceof Error
+          ? error.message
+          : 'Unable to update password.',
+        'err'
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (checking) {
+    return (
+      <Shell
+        title="Checking reset link"
+        sub="Please wait while we verify your password reset session."
+      >
+        <div className="text-center py-6">
+          <p className="text-sm text-slate-500">Verifying reset link…</p>
+        </div>
+      </Shell>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <Shell
+        title="Reset link expired"
+        sub="This password reset link is invalid or has expired."
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Please request a new password reset link from the Forgot Password page.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => nav('/forgot-password')}
+            className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm"
+          >
+            Request New Reset Link
+          </button>
+
+          <button
+            type="button"
+            onClick={() => nav('/login')}
+            className="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 font-bold text-sm"
+          >
+            Back to Login
+          </button>
+        </div>
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell
+      title="Set new password"
+      sub="Create a new secure password for your Tourism360 account."
+    >
+      <form onSubmit={updatePassword} className="space-y-4">
+        <label className="block text-sm font-bold">
+          New password
+          <input
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={PASSWORD_MIN_LENGTH}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter new password"
+            className={`mt-1 w-full px-3.5 py-3 rounded-xl border bg-transparent text-sm outline-none ${
+              passwordError
+                ? 'border-rose-500'
+                : 'border-slate-200 dark:border-white/10 focus:border-teal-500'
+            }`}
+          />
+          {passwordError && (
+            <span className="block mt-1 text-[11px] text-rose-600">
+              {passwordError}
+            </span>
+          )}
+        </label>
+
+        <label className="block text-sm font-bold">
+          Confirm new password
+          <input
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={PASSWORD_MIN_LENGTH}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Re-enter new password"
+            className={`mt-1 w-full px-3.5 py-3 rounded-xl border bg-transparent text-sm outline-none ${
+              !passwordsMatch
+                ? 'border-rose-500'
+                : 'border-slate-200 dark:border-white/10 focus:border-teal-500'
+            }`}
+          />
+          {!passwordsMatch && (
+            <span className="block mt-1 text-[11px] text-rose-600">
+              Passwords do not match.
+            </span>
+          )}
+        </label>
+
+        <button
+          type="submit"
+          disabled={
+            busy ||
+            !isSupabaseConfigured ||
+            Boolean(passwordError) ||
+            !passwordsMatch
+          }
+          className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold text-sm transition"
+        >
+          {busy ? 'Updating password…' : 'Set New Password'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => nav('/login')}
+          className="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 font-bold text-sm"
+        >
+          Back to Login
+        </button>
+      </form>
+    </Shell>
+  );
+}
+
